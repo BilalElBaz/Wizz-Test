@@ -284,7 +284,6 @@
       },
       populateGames () {
           return axios.post(`${this.apiURL}/populate`)
-              .then(()=> searchGames(search))
       }
     },
     beforeMount () {
