@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Op } = require('sequelize');
+const { get } = require('axios');
 const db = require('./models');
 
 const app = express();
@@ -12,7 +13,7 @@ app.get('/api/games', (req, res) => db.Game.findAll()
   .then((games) => res.send(games))
   .catch((err) => {
     console.log('***There was an error querying games', JSON.stringify(err));
-    return res.send(err);
+    return res.status(400).send(err);
   }));
 
 app.post('/api/games/search', (req, res) => {
@@ -28,8 +29,41 @@ app.post('/api/games/search', (req, res) => {
     .then((games) => res.send(games))
     .catch((err) => {
       console.log('***There was an error searching games', JSON.stringify(err));
-      return res.send(err);
+      return res.status(400).send(err);
     });
+});
+
+app.post('/api/games/populate', async (req, res) => {
+  const games = await Promise.all(
+    [get('https://wizz-technical-test-dev.s3.eu-west-3.amazonaws.com/ios.top100.json'),
+      get('https://wizz-technical-test-dev.s3.eu-west-3.amazonaws.com/android.top100.json')],
+  ).then((responses) => responses.flatMap((response) => response.data).flat()
+    .map((game) => (
+      {
+        publisherId: game.publisher_id,
+        name: game.name,
+        platform: game.os,
+        storeId: game.app_id,
+        bundleId: game.bundle_id,
+        appVersion: game.version,
+        isPublished: Boolean(game.release_date),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    )));
+
+  const transaction = await db.sequelize.transaction();
+
+  try {
+    await db.Game.destroy({ where: {}, truncate: true, cascade: false, transaction });
+    await db.Game.bulkCreate(games, { validate: true, transaction });
+    await transaction.commit();
+    return res.status(201).send();
+  } catch (err) {
+    await transaction.rollback();
+    console.log('***There was an error populating games', JSON.stringify(err));
+    return res.status(400).send(err);
+  }
 });
 
 app.post('/api/games', (req, res) => {

@@ -15,7 +15,8 @@
     "express": "^4.18.2",
     "sequelize": "^5.10.0",
     "sequelize-cli": "^6.6.1",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "axios": "^1.12.2"
   },
   "devDependencies": {
     "chai": "^4.3.8",
