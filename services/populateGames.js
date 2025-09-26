@@ -20,11 +20,19 @@ async function populateGames() {
       }
     )));
 
+  // Deduplicate games
+  const storeIds = new Set();
+  const uniqueGames = games.filter((game) => {
+    if (storeIds.has(game.bundleId)) return false;
+    storeIds.add(game.bundleId);
+    return true;
+  });
+
   const transaction = await db.sequelize.transaction();
 
   try {
     await db.Game.destroy({ where: {}, truncate: true, cascade: false, transaction });
-    await db.Game.bulkCreate(games, { validate: true, transaction });
+    await db.Game.bulkCreate(uniqueGames, { validate: true, transaction });
     await transaction.commit();
   } catch (err) {
     await transaction.rollback();
