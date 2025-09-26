@@ -31,11 +31,13 @@ I would not challenge the storage solution yet, but if scaling issues appear dur
 # Question 2
 
 To ingest the files every day, I see two options:
-* Use a cron / scheduler to run the `api/games/populate` endpoint at fixed time every day.
+* Use a cron / scheduler to run the `api/games/populate` endpoint at fixed time every day. Could be EventBridge.
 * Use the event system of S3 to trigger the endpoint when a file is added or changed in the bucket.
 
-I would go with the second option as it's more flexible. However it would require a slightly more involved infrastructure as code in order to wire the S3 bucket to the lambda.
+The first option is a fixed time update to which we can adjust the timing if the games need to change outside working hours, for example.  
+The second option is reactive and ensures we always have the latest data. 
 
-If the bucket is not available in the same account as the service and it is not possible to do cross-account access, I would go with the first option.
+I would go with the second option as it's more flexible. However, it would require a slightly more involved infrastructure as code to wire the S3 bucket to the lambda.  
+If the bucket is not available in the same account as the service, and it is not possible to do cross-account access, I would go with the first option.
 
-Also a concern would be if the service must ingest more than the hardcoded files in the `api/games/populate` endpoint code, it would be more flexible to pass to the endpoint the filenames of the files we need to ingest at a given time.
+Also, a concern is if the service must ingest more than the hardcoded files in the `api/games/populate` endpoint code, it would be more flexible to pass to the endpoint the filenames of the files we need to ingest at a given time.
