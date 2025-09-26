@@ -34,7 +34,7 @@
   <section class="section section-container" style="padding-top: 24px; padding-bottom: 5px;">
     <h2 class="title">Games</h2>
     <game v-for="(game, index) in games"
-          :key="`game.name-${index}`"
+          :key="game.id"
           :game="game"
           @save-game="onAddOrUpdateGame"
           @delete-game="deleteGame" />
@@ -58,6 +58,21 @@
         bundleId: this.game ? this.game.bundleId : '',
         appVersion: this.game ? this.game.appVersion : '',
         isPublished: this.game ? this.game.isPublished : false
+      }
+    },
+    watch: {
+      game: {
+        immediate: true,
+        handler (game) {
+          this.id = game ? game.id : null
+          this.publisherId = game ? game.publisherId : ''
+          this.name = game ? game.name : ''
+          this.platform = game ? game.platform : 'ios'
+          this.storeId = game ? game.storeId : ''
+          this.bundleId = game ? game.bundleId : ''
+          this.appVersion = game ? game.appVersion : ''
+          this.isPublished = game ? game.isPublished : false
+        }
       }
     },
     methods: {
